@@ -42,14 +42,14 @@ def hash_same_size(config: Pindex, same_size: List[Dict[str, Any]]):
     print(f"{human_readable(total_size)} "
           "of data will have to be calculated for their hashes")
 
-    def calculate(e):
-        return calculate_hash(config, e)
-
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        results = [executor.submit(calculate, e) for e in same_size]
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        results = [
+            executor.submit(calculate_hash, config, e) for e in same_size
+        ]
 
         printer = Printer(1)
         for e in concurrent.futures.as_completed(results):
+            e = e.result()
             total_length -= 1
             total_size -= e.get("size")
             printer.print(f"{total_length} file(s) / "
